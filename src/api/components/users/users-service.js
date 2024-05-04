@@ -5,8 +5,13 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * Get list of users
  * @returns {Array}
  */
-async function getUsers(pNumber, pSize, forSearch, forSorting, kueri, skip) {
-  const users = await usersRepository.getUsers(kueri, skip, limited);
+async function getUsers(pNumber, pSize, forSearch, forSorting) {
+  const users = await usersRepository.getUsers(
+    pNumber,
+    pSize,
+    forSearch,
+    forSorting
+  );
 
   const awal = (pNumber - 1) * pSize;
   const akhir = pNumber * pSize;
@@ -15,6 +20,17 @@ async function getUsers(pNumber, pSize, forSearch, forSorting, kueri, skip) {
   const results = users.slice(awal, akhir);
   const count = users.length;
 
+  const skip = (pNumber - 1) * pSize;
+  const limit = pSize;
+
+  let fieldName = null;
+  let searchKey = '';
+
+  if (forSearch) {
+    [fieldName, searchKey] = forSearch.split(':');
+  }
+
+  if (fieldName === 'name' || fieldName === 'email') {
     const kueri = {
       // Menggunakan 'kueri' untuk pencarian
       [fieldName]: {
@@ -187,6 +203,31 @@ async function changePassword(userId, password) {
   return true;
 }
 
+async function paginasional(pNumber, pSize, forSorting, forSearch) {
+  const users = await usersRepository.getUsers(
+    pNumber,
+    pSize,
+    forSorting,
+    forSearch
+  );
+
+  const awal = (pNumber - 1) * pSize;
+  const akhir = pNumber * pSize;
+  const pageSebelum = pNumber > 1 ? true : false;
+  const pageSesudah = akhir < users.length;
+  const results = users.slice(awal, akhir);
+  const count = users.length;
+
+  return {
+    page_number: pNumber,
+    page_size: pSize,
+    count,
+    has_previous_page: pageSebelum,
+    has_next_page: pageSesudah,
+    data: results,
+  };
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -196,4 +237,5 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
+  paginasional,
 };
