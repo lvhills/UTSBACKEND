@@ -6,14 +6,20 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * @returns {Array}
  */
 async function getUsers(pNumber, pSize, forSearch, forSorting) {
-  const users = await usersRepository.getUsers();
+  const skip = (pNumber - 1) * pSize;
+  const batas = pSize;
+
+  let kueri = {};
+  let Sort = {};
+
+  const users = await usersRepository.getUsers(skip, batas, kueri, Sort);
 
   const awal = (pNumber - 1) * pSize;
   const akhir = pNumber * pSize;
   const sebelum = pNumber > 1 ? true : false;
   const sesudah = akhir < users.length;
   const results = users.slice(awal, akhir);
-  const count = users.length;
+  const count = results.length;
 
   let fieldname = null;
   let searchKey = '';
@@ -22,26 +28,40 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
     [fieldname, searchKey] = forSearch.split(':');
   }
 
-  let kueri = {};
-
   // Apply search filter if provided
   if (fieldname === 'name' || fieldname === 'email') {
     kueri[fieldname] = { $regex: searchKey, $options: 'i' };
   }
 
-  // Count total number of users
+  let fieldSort = null;
+  let sortKey = '';
 
-  const totalPages = Math.ceil(count / pSize);
+  if (!forSorting) {
+    sort = 'email: asc';
+  }
 
-  // Calculate skip and limit for pagination
-  const skip = (pNumber - 1) * pSize;
-  const limit = pSize;
+  if (forSorting && forSorting.includes(':')) {
+    [fieldSort, sortKey] = sort.split(':');
+  }
 
+  if (!(fieldSort === 'name' || fieldSort === 'email')) {
+    fieldSort = 'email';
+    sortKey = 'asc';
+  }
+
+  Sort[fieldSort] = sortKey === 'desc' ? -1 : 1;
+  if (fieldSort === 'name' || fieldSort === 'email') {
+    Sort[fieldSort] = sortKey === 'desc' ? -1 : 1;
+  } else {
+    (Sort[fieldSort] = fieldSort === 'email'), sortKey === 'desc' ? -1 : 1;
+  }
+
+  const totalPages = Math.ceil(users.length / pSize);
   // Apply pagination and sorting
 
   const total = [];
   for (let i = 0; i < users.length; i += 1) {
-    const user = users[i];
+    const user = results[i];
     total.push({
       id: user.id,
       name: user.name,
@@ -52,7 +72,7 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   return {
     page_number: pNumber,
     page_size: pSize,
-    count,
+    count: users.length,
     total_pages: totalPages,
     has_previous_page: sebelum,
     has_next_page: sesudah,
@@ -204,31 +224,6 @@ async function changePassword(userId, password) {
   return true;
 }
 
-async function paginasional(pNumber, pSize, forSorting, forSearch) {
-  const users = await usersRepository.getUsers(
-    pNumber,
-    pSize,
-    forSorting,
-    forSearch
-  );
-
-  const awal = (pNumber - 1) * pSize;
-  const akhir = pNumber * pSize;
-  const pageSebelum = pNumber > 1 ? true : false;
-  const pageSesudah = akhir < users.length;
-  const results = users.slice(awal, akhir);
-  const count = users.length;
-
-  return {
-    page_number: pNumber,
-    page_size: pSize,
-    count,
-    has_previous_page: pageSebelum,
-    has_next_page: pageSesudah,
-    data: results,
-  };
-}
-
 module.exports = {
   getUsers,
   getUser,
@@ -238,5 +233,4 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
-  paginasional,
 };
