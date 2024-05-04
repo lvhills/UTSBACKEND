@@ -5,13 +5,8 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * Get list of users
  * @returns {Array}
  */
-async function getUsers(pNumber, pSize, forSearch, forSorting) {
-  const users = await usersRepository.getUsers(
-    pNumber,
-    pSize,
-    forSearch,
-    forSorting
-  );
+async function getUsers(pNumber, pSize, forSearch, forSorting, kueri, skip) {
+  const users = await usersRepository.getUsers(kueri, skip, limited);
 
   const awal = (pNumber - 1) * pSize;
   const akhir = pNumber * pSize;
@@ -20,17 +15,6 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   const results = users.slice(awal, akhir);
   const count = users.length;
 
-  const skip = (pNumber - 1) * pSize;
-  const limit = pSize;
-
-  let fieldName = null;
-  let searchKey = '';
-
-  if (forSearch) {
-    [fieldName, searchKey] = forSearch.split(':');
-  }
-
-  if (fieldName === 'name' || fieldName === 'email') {
     const kueri = {
       // Menggunakan 'kueri' untuk pencarian
       [fieldName]: {

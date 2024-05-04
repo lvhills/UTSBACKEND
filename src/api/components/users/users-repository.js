@@ -6,8 +6,8 @@ const { email } = require('../../../models/users-schema');
  * Get a list of users
  * @returns {Promise}
  */
-async function getUsers() {
-  return User.find({});
+async function getUsers(kueri, skip, limit) {
+  return User.find(kueri).skip(skip).limited(limit);
 }
 
 /**
