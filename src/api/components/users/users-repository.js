@@ -90,46 +90,51 @@ async function changePassword(id, password) {
  * @param {string} search - Search query
  * @returns {Promise}
  */
-async function pagiNasional(pNumber, pSize, forSorting, forSearch) {
-  let query = User.find();
+async function pagiNasional(pNumber, pSize, forSearch, forSorting) {
+  let searchField = null;
+  let searchKey = '';
 
-  // Apply search filter if provided
-  if (forSearch) {
-    query = query.find({
-      $or: [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ],
-    });
+  if (forSearch && forSearch.includes(':')) {
+    [searchField, searchKey] = search.split(':');
   }
 
-  // Count total number of users
+  let searchQuery = {};
+
+  if (searchField === 'name' || searchField === 'email') {
+    searchQuery[searchField] = { $regex: searchKey, $options: 'i' };
+  }
+
+  let sortField = null;
+  let sortOrder = '';
+
+  if (!forSorting) {
+    forSorting = 'email:asc';
+  }
+
+  if (forSorting && forSorting.includes(':')) {
+    [sortField, sortOrder] = sort.split(':');
+  }
+
+  let sortOptions = {};
+
+  if (!(sortField === 'name' || sortField === 'email')) {
+    sortField = 'email';
+    sortOrder = 'asc';
+  }
+
+  sortOptions[searchField] = sortOrder === 'desc' ? -1 : 1;
+
   const count = await query.countDocuments();
 
-  const totalPages = Math.ceil(count / pSize);
-
-  // Calculate skip and limit for pagination
-  const skip = (pNumber - 1) * pSize;
-  const limit = pSize;
-
-  // Apply pagination and sorting
-  const users = await query.sort(forSorting).skip(skip).limit(limit).exec();
-
-  const pageSebelum = pNumber > 1;
-  const pageSesudah = pNumber < totalPages;
-  return {
-    page_number: pNumber,
-    page_size: pSize,
-    count,
-    totalPages: totalPages,
-    has_previous_page: pageSebelum,
-    has_next_page: pageSesudah,
-    data: users.map((user) => ({
+  const results = [];
+  for (let i = 0; i < users.length; i += 1) {
+    const user = count[i];
+    results.map({
       id: user.id,
       name: user.name,
       email: user.email,
-    })),
-  };
+    });
+  }
 }
 
 module.exports = {

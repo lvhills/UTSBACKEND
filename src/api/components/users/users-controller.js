@@ -9,17 +9,18 @@ const { errorResponder, errorTypes } = require('../../../core/errors');
  * @returns {object} Response object or pass an error to the next route
  */
 async function getUsers(request, response, next) {
-  const pNumber = parseInt(request.query.page_number) || 1;
-  const pSize = parseInt(request.query.page_size) || 10;
-  const forSorting = request.query.sort || 'email:asc';
-  const forSearch = request.query.search || null;
   try {
-    const users = await usersService.paginasional(
+    const pNumber = parseInt(request.query.page_number) || 1;
+    const pSize = parseInt(request.query.page_size) || 10;
+    const forSorting = request.query.sort || 'email:asc';
+    const forSearch = request.query.search;
+    const users = await usersService.getUsers(
       pNumber,
       pSize,
       forSorting,
       forSearch
     );
+
     return response.status(200).json(users);
   } catch (error) {
     return next(error);
