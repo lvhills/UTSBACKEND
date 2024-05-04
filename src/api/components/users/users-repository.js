@@ -91,24 +91,23 @@ async function changePassword(id, password) {
  * @returns {Promise}
  */
 async function pagiNasional(pNumber, pSize, forSorting, forSearch) {
+  let query = await User.find();
   let fieldname = null;
   let searchKey = '';
 
   if (forSearch && forSearch.includes(':')) {
     [fieldname, searchKey] = forSearch.split(':');
   }
+
+  let kueri = {};
+
   // Apply search filter if provided
-  if (forSearch) {
-    query = query.find({
-      $or: [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-      ],
-    });
+  if (fieldname === 'name' || fieldname === 'email') {
+    kueri[fieldname] = { $regex: searchKey, $options: 'i' };
   }
 
   // Count total number of users
-  const count = await query.countDocuments();
+  const count = await query.countDocuments(kueri);
 
   const totalPages = Math.ceil(count / pSize);
 
@@ -125,7 +124,7 @@ async function pagiNasional(pNumber, pSize, forSorting, forSearch) {
     page_number: pNumber,
     page_size: pSize,
     count,
-    totalPages: totalPages,
+    total_pages: totalPages,
     has_previous_page: pageSebelum,
     has_next_page: pageSesudah,
     data: users.map((user) => ({

@@ -5,20 +5,63 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * Get list of users
  * @returns {Array}
  */
-async function getUsers() {
+async function getUsers(pNumber, pSize, forSearch, forSorting) {
   const users = await usersRepository.getUsers();
 
-  const results = [];
+  const awal = (pNumber - 1) * pSize;
+  const akhir = pNumber * pSize;
+  const sebelum = pNumber > 1 ? true : false;
+  const sesudah = akhir < users.length;
+  const results = users.slice(awal, akhir);
+  const count = users.length;
+
+  let fieldname = null;
+  let searchKey = '';
+
+  if (forSearch && forSearch.includes(':')) {
+    [fieldname, searchKey] = forSearch.split(':');
+  }
+
+  let kueri = {};
+
+  // Apply search filter if provided
+  if (fieldname === 'name' || fieldname === 'email') {
+    kueri[fieldname] = { $regex: searchKey, $options: 'i' };
+  }
+
+  // Count total number of users
+
+  const totalPages = Math.ceil(count / pSize);
+
+  // Calculate skip and limit for pagination
+  const skip = (pNumber - 1) * pSize;
+  const limit = pSize;
+
+  // Apply pagination and sorting
+
+  const total = [];
   for (let i = 0; i < users.length; i += 1) {
     const user = users[i];
-    results.push({
+    total.push({
       id: user.id,
       name: user.name,
       email: user.email,
     });
   }
 
-  return results;
+  return {
+    page_number: pNumber,
+    page_size: pSize,
+    count,
+    total_pages: totalPages,
+    has_previous_page: sebelum,
+    has_next_page: sesudah,
+    data: total.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    })),
+  };
 }
 
 /**
@@ -161,6 +204,31 @@ async function changePassword(userId, password) {
   return true;
 }
 
+async function paginasional(pNumber, pSize, forSorting, forSearch) {
+  const users = await usersRepository.getUsers(
+    pNumber,
+    pSize,
+    forSorting,
+    forSearch
+  );
+
+  const awal = (pNumber - 1) * pSize;
+  const akhir = pNumber * pSize;
+  const pageSebelum = pNumber > 1 ? true : false;
+  const pageSesudah = akhir < users.length;
+  const results = users.slice(awal, akhir);
+  const count = users.length;
+
+  return {
+    page_number: pNumber,
+    page_size: pSize,
+    count,
+    has_previous_page: pageSebelum,
+    has_next_page: pageSesudah,
+    data: results,
+  };
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -170,4 +238,5 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
+  paginasional,
 };
