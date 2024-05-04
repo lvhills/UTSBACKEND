@@ -5,59 +5,17 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * Get list of users
  * @returns {Array}
  */
-async function getUsers(pNumber, pSize, forSearch, forSorting) {
-  const users = await usersRepository.getUsers(
-    pNumber,
-    pSize,
-    forSearch,
-    forSorting
-  );
+async function getUsers() {
+  const users = await usersRepository.getUsers();
 
-  const awal = (pNumber - 1) * pSize;
-  const akhir = pNumber * pSize;
-  const pageSebelum = pNumber > 1 ? true : false;
-  const pageSesudah = akhir < users.length;
-  const results = users.slice(awal, akhir);
-  const count = users.length;
-
-  const skip = (pNumber - 1) * pSize;
-  const limit = pSize;
-
-  let fieldName = null;
-  let searchKey = '';
-
-  if (forSearch) {
-    [fieldName, searchKey] = forSearch.split(':');
-  }
-
-  if (fieldName === 'name' || fieldName === 'email') {
-    const kueri = {
-      // Menggunakan 'kueri' untuk pencarian
-      [fieldName]: {
-        $regex: searchKey,
-        $options: 'i',
-      },
-    };
-
-    // Loop sebanyak total pengguna yang cocok dengan kriteria pencarian
-    const results = [];
-    for (let i = 0; i < users.length; i += 1) {
-      const user = users[i]; // Mengganti 'hasil' dengan 'users'
-      results.push({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      });
-
-      return {
-        page_number: pNumber,
-        page_size: pSize,
-        count,
-        has_previous_page: pageSebelum,
-        has_next_page: pageSesudah,
-        data: results,
-      };
-    }
+  const results = [];
+  for (let i = 0; i < users.length; i += 1) {
+    const user = users[i];
+    results.push({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   return results;
