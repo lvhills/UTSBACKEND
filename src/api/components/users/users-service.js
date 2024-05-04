@@ -161,31 +161,6 @@ async function changePassword(userId, password) {
   return true;
 }
 
-async function paginasional(pNumber, pSize, forSorting, forSearch) {
-  const users = await usersRepository.getUsers(
-    pNumber,
-    pSize,
-    forSorting,
-    forSearch
-  );
-
-  const awal = (pNumber - 1) * pSize;
-  const akhir = pNumber * pSize;
-  const pageSebelum = pNumber > 1 ? true : false;
-  const pageSesudah = akhir < users.length;
-  const results = users.slice(awal, akhir);
-  const count = users.length;
-
-  return {
-    page_number: pNumber,
-    page_size: pSize,
-    count,
-    has_previous_page: pageSebelum,
-    has_next_page: pageSesudah,
-    data: results,
-  };
-}
-
 module.exports = {
   getUsers,
   getUser,
@@ -195,5 +170,4 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
-  paginasional,
 };

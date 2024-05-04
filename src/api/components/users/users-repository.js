@@ -91,8 +91,12 @@ async function changePassword(id, password) {
  * @returns {Promise}
  */
 async function pagiNasional(pNumber, pSize, forSorting, forSearch) {
-  let query = User.find();
+  let fieldname = null;
+  let searchKey = '';
 
+  if (forSearch && forSearch.includes(':')) {
+    [fieldname, searchKey] = forSearch.split(':');
+  }
   // Apply search filter if provided
   if (forSearch) {
     query = query.find({
