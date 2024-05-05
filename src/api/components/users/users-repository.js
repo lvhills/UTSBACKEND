@@ -83,6 +83,15 @@ async function changePassword(id, password) {
   return User.updateOne({ _id: id }, { $set: { password } });
 }
 
+async function Countusers() {
+  try {
+    const count = await User.countDocuments();
+    return count;
+  } catch (error) {
+    throw new Error(`Error counting users: ${error.message}`);
+  }
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -91,4 +100,5 @@ module.exports = {
   deleteUser,
   getUserByEmail,
   changePassword,
+  Countusers,
 };

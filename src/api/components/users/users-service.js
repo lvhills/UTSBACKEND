@@ -19,7 +19,7 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   const sebelum = pNumber > 1 ? true : false;
   const sesudah = akhir < users.length;
   const results = users.slice(awal, akhir);
-  const count = results.length;
+  const count = await Countusers();
 
   let fieldname = null;
   let searchKey = '';
@@ -72,7 +72,7 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   return {
     page_number: pNumber,
     page_size: pSize,
-    count: users.length,
+    count,
     total_pages: totalPages,
     has_previous_page: sebelum,
     has_next_page: sesudah,
@@ -224,6 +224,10 @@ async function changePassword(userId, password) {
   return true;
 }
 
+async function Countusers() {
+  const count = await usersRepository.Countusers();
+  return count;
+}
 module.exports = {
   getUsers,
   getUser,
@@ -233,4 +237,5 @@ module.exports = {
   emailIsRegistered,
   checkPassword,
   changePassword,
+  Countusers,
 };

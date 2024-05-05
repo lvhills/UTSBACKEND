@@ -22,14 +22,9 @@ async function createTopup(request, response, next) {
 async function getTopup(request, response, next) {
   try {
     const page_number = parseInt(request.query.page_number) || 1;
-    const namaecommerce = request.query.namaecommerce || ''; // Removed parseInt
-    const page_size = parseInt(request.query.page_size) || 7; // Changed to request.query.page_size
+    const page_size = parseInt(request.body.page_size) || 7;
 
-    const topup = await topupService.getTopup(
-      page_number,
-      page_size,
-      namaecommerce
-    );
+    const topup = await topupService.getTopup(page_number, page_size);
 
     return response.status(200).json(topup);
   } catch (error) {
@@ -50,12 +45,7 @@ async function updateTopup(request, response, next) {
       jumlah_diamond,
       harga
     );
-
-    if (!result) {
-      throw errorResponder(errorTypes.NOT_FOUND, 'Topup not found'); // Added error handling for topup not found
-    }
-
-    return response.status(200).json(result);
+    return response.status(200).json(id);
   } catch (error) {
     return next(error);
   }
