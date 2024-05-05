@@ -6,6 +6,7 @@ const { hashPassword, passwordMatched } = require('../../../utils/password');
  * @returns {Array}
  */
 async function getUsers(pNumber, pSize, forSearch, forSorting) {
+  //untuk mengatur limit dan batas tiap page
   const skip = (pNumber - 1) * pSize;
   const batas = pSize;
 
@@ -14,6 +15,7 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
 
   const users = await usersRepository.getUsers(skip, batas, kueri, Sort);
 
+  //fungsi agar pagination dapat run dengan benar
   const awal = (pNumber - 1) * pSize;
   const akhir = pNumber * pSize;
   const sebelum = pNumber > 1 ? true : false;
@@ -21,25 +23,23 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   const results = users.slice(awal, akhir);
   const count = await Countusers();
 
+  //Fungsi agar dapat memisahkan nama dan email
   let fieldname = null;
   let searchKey = '';
-
   if (forSearch && forSearch.includes(':')) {
     [fieldname, searchKey] = forSearch.split(':');
   }
-
   // Apply search filter if provided
   if (fieldname === 'name' || fieldname === 'email') {
     kueri[fieldname] = { $regex: searchKey, $options: 'i' };
   }
 
+  //Fungsi untuk menyorting secara abjad berdasarkan email
   let fieldSort = null;
   let sortKey = '';
-
   if (!forSorting) {
     Sort = 'email: asc';
   }
-
   if (forSorting && forSorting.includes(':')) {
     [fieldSort, sortKey] = Sort.split(':');
   }
