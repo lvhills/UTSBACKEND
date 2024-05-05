@@ -37,16 +37,16 @@ async function getUsers(pNumber, pSize, forSearch, forSorting) {
   let sortKey = '';
 
   if (!forSorting) {
-    sort = 'email: asc';
+    Sort = 'email: asc';
   }
 
   if (forSorting && forSorting.includes(':')) {
-    [fieldSort, sortKey] = sort.split(':');
+    [fieldSort, sortKey] = Sort.split(':');
   }
 
   if (!(fieldSort === 'name' || fieldSort === 'email')) {
     fieldSort = 'email';
-    sortKey = 'asc';
+    Sort[fieldSort] = 'asc';
   }
 
   Sort[fieldSort] = sortKey === 'desc' ? -1 : 1;

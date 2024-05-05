@@ -7,13 +7,7 @@ const { email } = require('../../../models/users-schema');
  * @returns {Promise}
  */
 async function getUsers(skip, batas, kueri, Sort) {
-  try {
-    let query = User.find(kueri).sort(Sort).skip(skip).limit(batas);
-    const users = await query.exec();
-    return users;
-  } catch (error) {
-    throw error;
-  }
+  return User.find(kueri).skip(skip).limit(batas).sort(Sort);
 }
 
 /**
